@@ -1,11 +1,11 @@
 import { Timestamp } from "firebase/firestore";
 
 export interface IUser {
-  anniversaryDate?: Date | null;
+  anniversaryDate?: Timestamp | null;
   chatroomUid?: string | null;
-  createdAt: Date;
+  createdAt: Timestamp;
   email: string;
-  lastLogin?: Date | null;
+  lastLogin?: Timestamp | null;
   name: string;
   onboarded: boolean;
   partnerUid?: string | null;

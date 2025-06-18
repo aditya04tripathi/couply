@@ -30,30 +30,35 @@ const LoginPageClient = () => {
     e.preventDefault();
     dispatch(setLoading(true));
 
-    const user = await loginWithEmailAndPassword({
-      email: form.email,
-      password: form.password,
-    });
+    try {
+      const user = await loginWithEmailAndPassword({
+        email: form.email,
+        password: form.password,
+      });
 
-    const userData = await getUserByUid(user?.uid!);
-    if (!userData) {
-      toast.error("User data not found. Please try again.");
-      console.error("User data not found");
-      return;
+      const userData = await getUserByUid(user?.uid!);
+      if (!userData) {
+        toast.error("User data not found. Please try again.");
+        console.error("User data not found");
+        return;
+      }
+
+      if (!userData?.onboarded) {
+        router.push("/onboarding");
+        return;
+      }
+
+      const partner = await getUserByUid(userData.partnerUid!);
+
+      dispatch(setUser(userData));
+      dispatch(setPartner(partner!));
+      router.push("/dashboard");
+    } catch (error) {
+      console.error(error);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      dispatch(setLoading(false));
     }
-
-    if (!userData?.onboarded) {
-      router.push("/onboarding");
-      return;
-    }
-
-    const partner = await getUserByUid(userData.partnerUid!);
-
-    dispatch(setUser(userData));
-    dispatch(setPartner(partner!));
-    dispatch(setLoading(false));
-
-    router.push("/dashboard");
   };
 
   return (

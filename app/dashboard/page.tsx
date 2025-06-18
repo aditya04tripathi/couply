@@ -113,11 +113,12 @@ const Dashboard = () => {
     }
   };
 
-  const calculateNumberOfDaysTogether = (startDate: Date) => {
-    const today = new Date();
-    const start = new Date(startDate);
-    const timeDiff = today.getTime() - start.getTime();
+  const calculateNumberOfDaysTogether = (startDate: Timestamp) => {
+    const today = Timestamp.now();
+    const timeDiff = today.nanoseconds - startDate.nanoseconds;
     const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+
+    console.log("TimeElapsed in Days:", daysDiff);
 
     return daysDiff >= 0 ? daysDiff : 0;
   };
@@ -131,36 +132,36 @@ const Dashboard = () => {
 
   return (
     <>
-      <div className="flex flex-col items-center justify-center h-screen">
-        <div className="relative flex flex-col w-[80%] h-[80%] border rounded-lg overflow-clip">
-          <ScrollArea className="absolute overflow-clip top-5 h-[calc(100%-92px)] px-5 w-full">
-            <div className="flex flex-col h-full gap-2">
+      <div className="flex flex-col items-center justify-center min-h-screen p-2 sm:p-4">
+        <div className="relative flex flex-col w-full max-w-4xl h-[90vh] sm:h-[80vh] border rounded-lg overflow-hidden">
+          <ScrollArea className="absolute overflow-auto top-5 bottom-24 sm:bottom-20 px-2 sm:px-5 w-full">
+            <div className="flex flex-col gap-2">
               {messages.map((message) => (
-                <div key={message.timestamp.toString()} className={clsx("p-2 rounded-lg flex flex-col w-96", user!.uid === message.senderUid ? "text-right self-end rounded-br-none bg-primary" : "self-start rounded-bl-none bg-secondary")}>
+                <div key={message.timestamp.toString()} className={clsx("p-2 rounded-lg flex flex-col max-w-[85%] sm:max-w-[70%]", user!.uid === message.senderUid ? "text-right self-end rounded-br-none bg-primary" : "self-start rounded-bl-none bg-secondary")}>
                   <div className="flex items-center gap-2">
                     <Trash2Icon className={user!.uid !== message.senderUid ? "hidden cursor-pointer" : "cursor-pointer"} size={16} onClick={() => deleteMessage(message)} />
-                    <span className={clsx("flex-1 text-xs", user!.uid === message.senderUid ? "text-primary-foreground" : "text-muted-foreground")}>
+                    <span className={clsx("flex-1 text-[10px] sm:text-xs", user!.uid === message.senderUid ? "text-primary-foreground" : "text-muted-foreground")}>
                       {message.senderUid === user!.uid ? user!.name : partner.name} • {timestampToDate(message.timestamp)}
                     </span>
                   </div>
                   {message.attachmentUrl && (
                     <div className="my-2">
-                      <Image height={1080} width={1920} src={message.attachmentUrl} alt="Attachment" className="object-contain rounded w-96" />
+                      <Image height={1080} width={1920} src={message.attachmentUrl} alt="Attachment" className="object-contain rounded max-w-full" />
                     </div>
                   )}
-                  {message.content}
+                  <p className="break-words">{message.content}</p>
                 </div>
               ))}
             </div>
           </ScrollArea>
-          <div className="absolute flex items-center justify-start h-8 gap-2 bottom-5 left-5 right-5">
-            <div className="relative w-full">
+          <div className="absolute flex flex-col sm:flex-row items-stretch gap-2 bottom-2 sm:bottom-5 left-2 right-2 sm:left-5 sm:right-5">
+            <div className="relative flex-1">
               {image && (
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Image src={URL.createObjectURL(image)} alt="Attachment" className={clsx("absolute left-2 top-1/2 -translate-y-1/2", image ? "block" : "hidden")} height={24} width={24} />
+                    <Image src={URL.createObjectURL(image)} alt="Attachment" className="absolute left-2 top-1/2 -translate-y-1/2 block cursor-pointer" height={24} width={24} />
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="max-w-[90vw] sm:max-w-lg">
                     <DialogHeader>
                       <DialogTitle>Image Attachment</DialogTitle>
                       <DialogDescription>Preview your attached image before sending.</DialogDescription>
@@ -169,23 +170,20 @@ const Dashboard = () => {
                   </DialogContent>
                 </Dialog>
               )}
-              <Input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Enter your message..." className={clsx(image && "pl-10")} />
+              <Input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Enter your message..." className={clsx("w-full", image && "pl-10")} />
             </div>
             <div className="flex items-center gap-2">
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
-                  <Paperclip className="p-2 rounded-full cursor-pointer size-8 bg-primary" />
+                  <Paperclip className="flex-1 md:flex-shrink p-2 rounded-full cursor-pointer bg-primary" />
                 </DialogTrigger>
-
-                <DialogContent>
+                <DialogContent className="max-w-[90vw] sm:max-w-lg">
                   <DialogHeader>
                     <DialogTitle>Attach an image 😉 (spicy?)</DialogTitle>
                     <DialogDescription>Upload an image to spice up your conversation!</DialogDescription>
                   </DialogHeader>
-
-                  <div className="flex items-center justify-center w-full border rounded h-96 overflow-clip">{image ? <Image height={1080} width={1920} src={URL.createObjectURL(image)} alt="Preview" className="object-contain w-auto h-96" /> : <p className="font-bold uppercase text-primary">No image selected</p>}</div>
-
-                  <DialogFooter>
+                  <div className="flex items-center justify-center w-full border rounded h-40 sm:h-60 overflow-hidden">{image ? <Image height={1080} width={1920} src={URL.createObjectURL(image)} alt="Preview" className="object-contain w-auto h-full" /> : <p className="font-bold uppercase text-primary">No image selected</p>}</div>
+                  <div className="flex flex-col sm:flex-row gap-2 mt-4">
                     <Input
                       ref={fileRef}
                       type="file"
@@ -193,36 +191,40 @@ const Dashboard = () => {
                       onChange={(e) => {
                         setImage(e.target.files ? e.target.files[0] : null);
                       }}
+                      className="text-sm"
                     />
-                    <Button
-                      onClick={() => {
-                        setImage(null);
-                        fileRef.current!.value = "";
-                      }}
-                    >
-                      Clear
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setDialogOpen(false);
-                      }}
-                    >
-                      Attach
-                    </Button>
-                  </DialogFooter>
+                    <div className="flex gap-2 mt-2 sm:mt-0">
+                      <Button
+                        onClick={() => {
+                          setImage(null);
+                          fileRef.current!.value = "";
+                        }}
+                        className="flex-1 sm:flex-none"
+                      >
+                        Clear
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setDialogOpen(false);
+                        }}
+                        className="flex-1 sm:flex-none"
+                      >
+                        Attach
+                      </Button>
+                    </div>
+                  </div>
                 </DialogContent>
               </Dialog>
-              <SendHorizonal onClick={sendMessage} className="p-2 rounded-full cursor-pointer size-8 bg-primary" />
+              <SendHorizonal onClick={sendMessage} className="flex-1 md:flex-shrink p-2 rounded-full cursor-pointer bg-primary" />
             </div>
           </div>
         </div>
-        <div className="fixed bottom-0 right-0 left-0 text-center bg-primary flex items-center justify-center w-full h-[5%]">
-          You and <span className="font-bold">&nbsp;{partner.name}&nbsp;</span> have been together for&nbsp;
-          <span className="font-bold">{calculateNumberOfDaysTogether(partner.anniversaryDate!)}</span>&nbsp;days.
+        <div className="fixed bottom-0  left-0 right-0  h-5 text-center bg-primary text-white rounded md:text-base w-full rounded-0 text-xs">
+          You and <span className="font-bold">{partner.name}</span> have been together for <span className="font-bold">{calculateNumberOfDaysTogether(user!.anniversaryDate!)}</span> days.
         </div>
       </div>
-      <div className="fixed top-5 right-5">
-        <Button variant={"destructive"} onClick={() => dispatch(logOutUser())}>
+      <div className="fixed top-0 right-0 h-6 w-full">
+        <Button onClick={() => dispatch(logOutUser())} size="sm" className="h-full rounded-none w-full">
           Sign Out
         </Button>
       </div>

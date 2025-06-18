@@ -34,31 +34,35 @@ const RegisterPageClient = () => {
     e.preventDefault();
     dispatch(setLoading(true));
 
-    await signUpWithEmailAndPassword({
-      name: form.name,
-      email: form.email,
-      password: form.password,
-      confirmPassword: form.confirmPassword,
-    });
-
-    if (autoLogin) {
-      const loggedInUser = await loginWithEmailAndPassword({
+    try {
+      await signUpWithEmailAndPassword({
+        name: form.name,
         email: form.email,
         password: form.password,
+        confirmPassword: form.confirmPassword,
       });
-      if (!loggedInUser) return;
 
-      const loggedInUserData = await getUserByUid(loggedInUser.uid);
+      if (autoLogin) {
+        const loggedInUser = await loginWithEmailAndPassword({
+          email: form.email,
+          password: form.password,
+        });
+        if (!loggedInUser) return;
 
-      if (!loggedInUserData?.onboarded) {
-        router.push("/onboarding");
-        dispatch(setLoading(false));
-        return;
+        const loggedInUserData = await getUserByUid(loggedInUser.uid);
+
+        if (!loggedInUserData?.onboarded) {
+          router.push("/onboarding");
+          return;
+        }
+
+        dispatch(setUser(loggedInUserData));
+        router.push("/dashboard");
       }
-
-      dispatch(setUser(loggedInUserData!));
+    } catch (error) {
+      console.error(error);
+    } finally {
       dispatch(setLoading(false));
-      router.push("/dashboard");
     }
   };
 
@@ -78,7 +82,6 @@ const RegisterPageClient = () => {
           id="autoLogin"
           checked={autoLogin}
           onCheckedChange={(checked) => {
-            console.log(checked);
             setAutoLogin(Boolean(checked));
           }}
         />
