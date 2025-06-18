@@ -8,9 +8,9 @@ import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import { auth, db } from "@/lib/firebaseConfig";
 import { getUserByUid } from "@/lib/firebaseHelpers";
 import { selectUser, setPartner, setUser } from "@/store/authSlice";
-import { addDoc, collection, doc, getDocs, query, setDoc, Timestamp, updateDoc, where } from "firebase/firestore";
+import { addDoc, collection, doc, getDocs, query, setDoc, Timestamp, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import React, { useEffect } from "react";
+import React from "react";
 import { toast } from "sonner";
 
 const OnboardingPage = () => {
